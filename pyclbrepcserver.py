@@ -133,12 +133,12 @@ class CodeBrowser(object):
     def readmodule_at(self, path):
         (module, root) = self.projects.find_module(path)
         if module:
-            return pyclbr.readmodule_ex(module, [root])
-        return {}  # FIXME: there should be a way to get some info!
+            return pyclbr.readmodule_ex(module, [root]).items()
+        return []  # FIXME: there should be a way to get some info!
 
     def get_descriptions(self, path):
         keys = ['module', 'name', 'file', 'lineno']
-        for (_, desc) in self.readmodule_at(path).items():
+        for (_, desc) in self.readmodule_at(path):
             descdict = subdict(vars(desc), keys)
             descdict.update(fullname='{0}.{1}'.format(desc.module, desc.name))
             yield descdict
