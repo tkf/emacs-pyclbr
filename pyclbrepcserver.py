@@ -4,6 +4,15 @@ import re
 import pyclbr
 
 
+def find_files(root):
+    for (dirpath, dirnames, filenames) in os.walk(root):
+        for fname in filenames:
+            yield os.path.join(dirpath, fname)
+        for dname in dirnames:
+            for fname in find_files(os.path.join(dirpath, dname)):
+                yield fname
+
+
 def subdict(dct, keys):
     return dict((k, dct[k]) for k in keys if k in dct)
 
@@ -124,6 +133,15 @@ class ProjectFinder(object):
                 os.path.splitext(os.path.basename(abspath))[0]):
             return os.path.dirname(abspath)
 
+    def find_package(self, path):
+        (module, root) = self.find_module(path)
+        if not module or '.' not in module:
+            return ([module], root)
+        top = module.split('.')[0]
+        asmodpath = lambda f: self._construct_modulepath(f, root)
+        files = find_files(os.path.join(root, top))
+        return ([asmodpath(f) for f in files if f.endswith('.py')], root)
+
 
 class CodeBrowser(object):
 
@@ -136,9 +154,17 @@ class CodeBrowser(object):
             return pyclbr.readmodule_ex(module, [root]).items()
         return []  # FIXME: there should be a way to get some info!
 
+    def readpackage_at(self, path):
+        (modules, root) = self.projects.find_package(path)
+        for module in modules:
+            if not module:
+                continue
+            for item in pyclbr.readmodule_ex(module, [root]).items():
+                yield item
+
     def get_descriptions(self, path):
         keys = ['module', 'name', 'file', 'lineno']
-        for (_, desc) in self.readmodule_at(path):
+        for (_, desc) in self.readpackage_at(path):
             descdict = subdict(vars(desc), keys)
             descdict.update(fullname='{0}.{1}'.format(desc.module, desc.name))
             yield descdict
