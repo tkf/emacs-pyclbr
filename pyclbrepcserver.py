@@ -180,6 +180,15 @@ def pyclbr_epc_server(address, port):
     server.serve_forever()
 
 
+def run(mode, address, port, path):
+    if mode == 'server':
+        pyclbr_epc_server(address, port)
+    else:
+        cb = CodeBrowser()
+        for desc in cb.get_descriptions(path):
+            print desc['fullname']
+
+
 def main(args=None):
     from argparse import ArgumentParser
     parser = ArgumentParser(description=__doc__)
@@ -187,8 +196,12 @@ def main(args=None):
         '--address', default='localhost')
     parser.add_argument(
         '--port', default=0, type=int)
+    parser.add_argument(
+        '--mode', default='server', choices=('server', 'cli'))
+    parser.add_argument(
+        '--path')
     ns = parser.parse_args(args)
-    pyclbr_epc_server(**vars(ns))
+    run(**vars(ns))
 
 
 if __name__ == '__main__':
