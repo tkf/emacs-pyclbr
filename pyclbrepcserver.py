@@ -159,8 +159,11 @@ class CodeBrowser(object):
         for module in modules:
             if not module:
                 continue
-            for item in pyclbr.readmodule_ex(module, [root]).items():
-                yield item
+            try:
+                for item in pyclbr.readmodule_ex(module, [root]).items():
+                    yield item
+            except ImportError:
+                pass
 
     def get_descriptions(self, path):
         keys = ['module', 'name', 'file', 'lineno']
