@@ -164,7 +164,9 @@ class CodeBrowser(object):
 
     def get_descriptions(self, path):
         keys = ['module', 'name', 'file', 'lineno']
-        for (_, desc) in self.readpackage_at(path):
+        for (key, desc) in self.readpackage_at(path):
+            if key == '__path__':
+                continue
             descdict = subdict(vars(desc), keys)
             descdict.update(fullname='{0}.{1}'.format(desc.module, desc.name))
             yield descdict
